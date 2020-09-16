@@ -11,6 +11,7 @@ Set the following env variables:
 $ export ARM_SUBSCRIPTION_ID=<your azure subription>
 $ export RESOURCE_GROUP_NAME=<the resurce grup where you want to create the vm>
 $ export MANAGED_IMAGE_NAME=<the name of the vm it will be created by packer>
+$ export SUBSPACE_HTTP_HOST=<subpace host domain>
 ```
 
 ### Run packer

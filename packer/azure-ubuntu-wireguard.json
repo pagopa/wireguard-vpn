@@ -76,6 +76,7 @@
         "inline": [
           "echo '***** Create docker image'",
           "sudo mkdir /data",
+          "echo 'subspace domain {{user `subspace_http_host` }}'",
           "sudo docker create --name subspace --restart always --network host --cap-add NET_ADMIN --volume /data:/data --env SUBSPACE_HTTP_HOST=\"{{user `subspace_http_host` }}\" subspacecommunity/subspace:latest",
           "echo '***** Disable systemd-resolved if it blocks port 53.'",
           "sudo systemctl disable systemd-resolved",
