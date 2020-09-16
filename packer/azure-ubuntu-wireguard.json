@@ -1,0 +1,89 @@
+{
+    "variables": {
+      "client_id": "{{env `ARM_CLIENT_ID`}}",
+      "client_secret": "{{env `ARM_CLIENT_SECRET`}}",
+      "subscription_id": "{{env `ARM_SUBSCRIPTION_ID`}}",
+      "tenant_id": "{{env `ARM_TENANT_ID`}}",
+      "managed_image_name": "{{env `MANAGED_IMAGE_NAME`}}",
+      "resource_group_name": "{{env `RESOURCE_GROUP_NAME`}}"
+    },
+    "builders": [
+      {
+        "type": "azure-arm",
+        "client_id": "{{user `client_id`}}",
+        "client_secret": "{{user `client_secret`}}",
+        "tenant_id": "{{user `tenant_id`}}",
+        "subscription_id": "{{user `subscription_id`}}",
+        "os_type": "Linux",
+        "image_publisher": "Canonical",
+        "image_offer": "UbuntuServer",
+        "image_sku": "18.04-LTS",
+        "location": "West Europe",
+        "vm_size": "Standard_B1s",
+        "managed_image_resource_group_name": "{{user `resource_group_name` }}",
+        "managed_image_name": "{{user `managed_image_name`}}",
+        "async_resourcegroup_delete": true
+      }
+    ],
+    "provisioners": [
+      {
+        "type": "shell",
+        "inline": [
+          "echo '***** Installing wireguard'",
+          "export DEBIAN_FRONTEND='noninteractive'",
+          "sudo add-apt-repository -y ppa:wireguard/wireguard",
+          "sudo apt-get update",
+          "sudo apt-get install -y wireguard",
+          "echo '***** Remove dnsmasq because it will run inside the container.'",
+          "sudo apt-get remove -y dnsmasq",
+          "echo '***** Load modules'",
+          "sudo modprobe wireguard",
+          "sudo modprobe iptable_nat",
+          "sudo modprobe ip6table_nat",
+          "sudo echo '***** Enable modules when rebooting'",
+          "# Enable modules when rebooting'",
+          "echo 'wireguard' | sudo tee -a /etc/modules-load.d/wireguard.conf",
+          "echo 'iptable_nat' | sudo tee -a /etc/modules-load.d/iptable_nat.conf",
+          "echo 'ip6table_nat' | sudo tee -a /etc/modules-load.d/ip6table_nat.conf",
+          "echo '***** Enable ip forwarding'",
+          "sudo sysctl -w net.ipv4.ip_forward=1",
+          "sudo sysctl -w net.ipv6.conf.all.forwarding=1",
+          "echo '***** Disable systemd-resolved if it blocks port 53.'",
+          "#sudo systemctl disable systemd-resolved",
+          "#sudo systemctl stop systemd-resolved",
+          "#echo '***** Set DNS server.'",
+          "#echo 'nameserver 1.1.1.1' | sudo tee -a /etc/resolv.conf"
+        ]
+      },
+      {
+        "type": "shell",
+        "inline": [
+          "echo '***** Installing docker'",
+          "export DEBIAN_FRONTEND='noninteractive'",
+          "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add - &> /dev/null",
+          "sudo apt-key fingerprint 0EBFCD88 &> /dev/null",
+          "sudo add-apt-repository \"deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable\"",
+          "sudo apt-get update",
+          "sudo apt-get install -y docker-ce docker-ce-cli containerd.io",
+          "echo '***** check if docker works'",
+          "sudo docker run hello-world",
+          "echo '***** Docker installed'"
+        ]
+      },
+      {
+        "type": "shell",
+        "inline": [
+          "echo '***** Create docker image'",
+          "sudo mkdir /data",
+          "sudo docker create --name subspace --restart always --network host --cap-add NET_ADMIN --volume /data:/data --env SUBSPACE_HTTP_HOST=\"vpn.dev.io.italia.it\" subspacecommunity/subspace:latest",
+          "echo '***** Disable systemd-resolved if it blocks port 53.'",
+          "sudo systemctl disable systemd-resolved",
+          "sudo systemctl stop systemd-resolved",
+          "echo '***** Set DNS server.'",
+          "echo nameserver 1.1.1.1 | sudo tee -a /etc/resolv.conf",
+          "echo 'Start subspace'",
+          "sudo docker start subspace"
+        ]
+      }
+    ]
+  }
