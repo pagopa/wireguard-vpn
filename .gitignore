@@ -27,3 +27,20 @@ override.tf.json
 
 # Include tfplan files to ignore the plan output of command: terraform plan -out=tfplan
 # example: *tfplan*
+
+## Packer
+
+# Created by https://www.toptal.com/developers/gitignore/api/packer
+# Edit at https://www.toptal.com/developers/gitignore?templates=packer
+
+### Packer ###
+# Cache objects
+packer_cache/
+
+# Crash log
+crash.log
+
+# For built boxes
+*.box
+
+# End of https://www.toptal.com/developers/gitignore/api/packer
