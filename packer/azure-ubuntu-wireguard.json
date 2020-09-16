@@ -5,7 +5,8 @@
       "subscription_id": "{{env `ARM_SUBSCRIPTION_ID`}}",
       "tenant_id": "{{env `ARM_TENANT_ID`}}",
       "managed_image_name": "{{env `MANAGED_IMAGE_NAME`}}",
-      "resource_group_name": "{{env `RESOURCE_GROUP_NAME`}}"
+      "resource_group_name": "{{env `RESOURCE_GROUP_NAME`}}",
+      "subspace_http_host": "{{env `SUBSPACE_HTTP_HOST`}}"
     },
     "builders": [
       {
@@ -75,7 +76,7 @@
         "inline": [
           "echo '***** Create docker image'",
           "sudo mkdir /data",
-          "sudo docker create --name subspace --restart always --network host --cap-add NET_ADMIN --volume /data:/data --env SUBSPACE_HTTP_HOST=\"vpn.dev.io.italia.it\" subspacecommunity/subspace:latest",
+          "sudo docker create --name subspace --restart always --network host --cap-add NET_ADMIN --volume /data:/data --env SUBSPACE_HTTP_HOST=\"{{user `subspace_http_host` }}\" subspacecommunity/subspace:latest",
           "echo '***** Disable systemd-resolved if it blocks port 53.'",
           "sudo systemctl disable systemd-resolved",
           "sudo systemctl stop systemd-resolved",
